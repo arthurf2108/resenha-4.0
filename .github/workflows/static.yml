@@ -1,0 +1,72 @@
+Crie um site de protótipo em um único arquivo `index.html` (HTML + CSS + JavaScript puro, sem frameworks, sem build, sem localStorage; todo o estado fica em memória). O site é um protótipo para o Projeto de Inovação do SENAI Patos de Minas, que resolve o problema de identificação e controle de matéria-prima na Panasonic do Brasil (recebimento, registro no SAP e armazenagem). A solução do TCC combina etiqueta GS1-128, Kanban, treinamento e endomarketing, aproveitando leitores e SAP já existentes. Todo o texto da interface fica em português do Brasil.
+
+## Visual
+- Estilo corporativo Panasonic: azul #0041C0, fundo #F3F4F6, cartões brancos com borda #D9DCE1 e cantos de 2px, botões retos, campos com linha inferior que fica azul ao focar.
+- Topo: barra branca com o texto "Panasonic" (negrito, azul) e, abaixo, uma faixa azul com gradiente animado devagar, uma faixa de barras de código de barras deslizando à direita e o título "Identificação de matéria-prima sem erro, sem retrabalho". Etiqueta pequena: "Projeto de Inovação · SENAI Patos de Minas".
+- Abas com ícone emoji e sublinhado azul na ativa, com rolagem horizontal no celular. A primeira aba é a que abre.
+- Modo claro e escuro (prefers-color-scheme) com variáveis CSS. Layout responsivo, com `viewport-fit=cover` e safe-area.
+- Animações discretas (entrada de seção, hover nos botões e cartões, mensagens que surgem, números que "pulam" quando mudam), todas desligadas com prefers-reduced-motion.
+
+## Abas, nesta ordem
+1. 🏷️ GS1-128  2. 📥 Recebimento  3. 🗃️ Estoque  4. 🏭 Fornecedores  5. 📊 Indicadores  6. 🧩 Kanban  7. 🎓 Treinamento e Endomarketing  8. 🔍 Diagnóstico  9. 🗓️ Cronograma  10. 💰 Viabilidade
+
+### 1. GS1-128 (3 passos, sem digitar código longo)
+- Passo 1: escolher Material (lista), Lote, Quantidade e Validade, e clicar em "Gerar etiqueta". Mostrar uma etiqueta (borda tracejada) com descrição, lote, quantidade, validade, barras ilustrativas em SVG e o código técnico pequeno no formato `(01)GTIN14(10)lote(17)AAMMDD(30)quantidade`. GTIN = "07891" + código SAP + dígito verificador GS1 (módulo 10, pesos 3 e 1 da direita para a esquerda).
+- Passo 2: botão "Simular bipe". Um laser vermelho varre a etiqueta uma vez e some (animação com `forwards` e opacity 0 no estado base), com um bipe curto via WebAudio dentro de try/catch. Depois, mostrar cartões grandes com Material, Código SAP, Lote, Quantidade e Validade, e uma mensagem verde se o GTIN for válido e o material existir, amarela se válido mas desconhecido, ou vermelha se o GTIN for inválido.
+- Passo 3: "Enviar para o Recebimento" preenche código SAP, lote, quantidade contada e validade, escolhe o primeiro endereço livre, vai para a aba Recebimento, mostra uma mensagem dizendo o que falta (fornecedor, quantidade da NF e confirmação) e foca no campo Fornecedor.
+- Em um bloco "Avançado" (details) há um campo com o código técnico editável, para testar GTIN inválido.
+
+### 2. Recebimento
+- Campos: Código SAP (8 dígitos, só números), Lote, Fornecedor, Quantidade na NF, Quantidade contada, Validade e Endereço (lista).
+- Ao digitar 8 dígitos: se existir, mostrar a descrição em verde e preencher o fornecedor padrão; se não existir, mostrar vermelho com sugestões de códigos parecidos (mesmo tamanho, até 2 dígitos diferentes).
+- Abaixo dos campos, uma área "Fornecedor da peça" com um cartão por fornecedor (nome, cidade, selo GS1, "★ fornece esta peça" quando for o caso, destaque azul no selecionado). Clicar no cartão preenche o campo, e digitar um nome também vale.
+- Caixa "Confirmo que a descrição confere com o material físico".
+- "Validar e gerar etiqueta" lista exatamente o que falta ("Falta preencher: ...") e marca os campos vazios em vermelho. Regras: código inexistente bloqueia; falta de confirmação bloqueia; mesmo código com mesmo lote já no estoque (duplicidade) bloqueia; endereço ocupado bloqueia; quantidade NF diferente da contada gera aviso de divergência e segue. Se tudo passar, gerar a etiqueta com QR Code (biblioteca qrcodejs 1.0.0 do cdnjs, com fallback) e o botão "Liberar para o estoque (simular lançamento no SAP)".
+- Ao liberar: entra no estoque, o fornecedor é registrado (se for novo, vira um fornecedor "Não avaliado"; se já existir, a peça entra na lista dele), os campos são limpos e é registrada uma atividade.
+
+### 3. Estoque
+Tabela filtrável (Código, Descrição, Fornecedor, Lote, Qtd, Endereço, Status).
+
+### 4. Fornecedores
+- Resumo (total, no padrão, parcial, fora do padrão, não avaliados) e alternância "Por fornecedor" (cartões com peças, saldo daquele fornecedor, quantos lotes e orientação conforme o selo) e "Por peça" (tabela), com busca. Mensagem "Nada encontrado" decidida pelos dados, nunca pelo innerHTML.
+- Fornecedor novo mostra uma lista para classificar o GS1 (Sim, Parcial, Não).
+- Orientações: Sim = bipe direto; Parcial = gerar etiqueta na doca se faltar; Não = gerar etiqueta GS1-128 na doca e cobrar adequação do fornecedor.
+
+### 5. Indicadores (tudo atualiza ao vivo)
+- 8 cartões: Recebimentos liberados, Erros barrados antes do SAP, Divergências de quantidade, Duplicidades evitadas, Saídas registradas, Materiais para repor, Endereços ocupados (x/30) e Taxa de acerto (liberados ÷ (liberados + erros + duplicidades)).
+- Gráfico de rosca da taxa de acerto, barras por tipo de ocorrência, barra empilhada do Kanban (OK, repor, acima do limite) com a lista dos materiais a repor, mapa do almoxarifado (ruas A a E, prateleiras 1 a 3, níveis 1 e 2, ocupados em azul, com tooltip) e feed das 6 últimas atividades com ponto colorido.
+- Card "Indicadores de sucesso do projeto" (tabela): Acuracidade de estoque = 98%; Tempo médio de conferência no recebimento = redução de 94%; Lançamentos manuais no SAP = redução de 92%; Itens trocados ou duplicados por mês = a definir; Tempo entre recebimento e liberação = a definir.
+- Tabela "Como o protótipo ataca o problema" (código trocado → validação e sugestão; etiqueta ilegível → etiqueta padrão; duplicidade → bloqueio código+lote; conferência lenta → fluxo único; desorganização → endereço obrigatório).
+
+### 6. Kanban
+- Um cartão por material com barra de ocupação e status: acima do limite (vermelho), saldo ≤ 30% do limite (amarelo, "Cartão voltou: repor"), senão verde. Os cartões amarelo e vermelho pulsam de leve.
+- Formulário "Registrar saída de material": material, quantidade, motivo (Consumo da produção, Venda, Perda ou avaria) e responsável. Valida quantidade, responsável e saldo. Baixa pelos lotes mais antigos (PEPS), remove lotes zerados, avisa se o saldo cair para 30% ou menos, e registra em uma tabela "Últimas movimentações". O botão "Registrar saída" de cada cartão pré-seleciona o material.
+
+### 7. Treinamento e Endomarketing (dois cartões)
+- Treinamento: 7 botões (T1 a T7). Cada um abre um painel com público, carga horária, o que se aprende e um botão "Praticar" que leva à aba ou ao ponto certo. Módulos (total 20 h): T1 Leitura GS1-128, operadores, 3 h; T2 Lançamento no SAP (MIGO), conferentes e TI, 4 h; T3 Conferência da NF e divergências, conferentes, 3 h; T4 Kanban no almoxarifado, almoxarifes e produção, 4 h; T5 Endereçamento e organização física, almoxarifes, 2 h; T6 Etiqueta ilegível ou ausente, recebimento, 2 h; T7 Gestão e indicadores, líderes e supervisores, 2 h. Abaixo, caixas de marcação com total de horas e custo a R$ 450,00 por hora.
+- Endomarketing, com 3 botões: (1) Workshops práticos, com calculadora de ganho de tempo (segundos no processo antigo, segundos com bipe, recebimentos por dia → minutos economizados por dia e % de redução; campos vazios com exemplo como placeholder); (2) Gestão à vista, com um banner "ATENÇÃO, ALMOXARIFADO" (3 passos e legenda das cores do Kanban); (3) Campanha Zero Erro, com 3 controles deslizantes por turno (90 a 100%) e o selo "Reconhecido: Zero Erro" em 100% (reconhecimento simbólico, como certificado ou destaque em mural; prêmio com custo fica por conta da Panasonic).
+
+### 8. Diagnóstico
+Quatro etapas clicáveis (Recebimento, Registro no SAP, Armazenagem, Liberação para a produção), cada uma com Problema, Consequência e Como a solução responde, mais botão que leva à aba relacionada. Abaixo, cinco benefícios esperados (menos erros e retrabalho; mais confiabilidade no SAP; conferência e liberação mais rápidas; estoque físico organizado; mais produtividade e controle).
+
+### 9. Cronograma
+Gráfico de Gantt de 12 semanas com 5 etapas (1 Diagnóstico: sem. 1–2; 2 Configuração: 3–4; 3 Organização do estoque: 4–6; 4 Treinamento: 5–7; 5 Piloto e acompanhamento: 8–12), com controle deslizante de semana que destaca a coluna atual e lista o que acontece nela. Previstas 5 visitas técnicas e 20 h de formação.
+
+### 10. Viabilidade (em 3 passos)
+1. Precisa de tecnologia nova? Três itens com ✅: o SAP suporta leitura GS1 com configuração da TI (habilitar IAs na MIGO); leitores e SAP já existem; Kanban é analógico, mas a leitura no recebimento depende de rede e SAP, então é preciso contingência.
+2. Quanto custa? Total R$ 91.000,00 em destaque, com barras proporcionais: Consultoria, treinamento e adequação do estoque R$ 50.000; Licença GS1 Brasil (1 ano) R$ 22.000; Visita técnica 5 dias × R$ 2.000 = R$ 10.000; Formação 20 h × R$ 450 = R$ 9.000.
+3. Em quanto tempo volta? Controle deslizante de economia mensal (R$ 5.000 a R$ 100.000, passo 250, valor inicial R$ 22.750 ≈ 4 meses) que mostra o payback (91.000 ÷ economia), quatro cartões (investimento, payback, economia no período, saldo líquido) e um gráfico em SVG das economias acumuladas por mês (período automático de 12 a 36 meses), com eixos, grade, linha vermelha tracejada do investimento, ponto verde do payback, barras azuis antes e verdes depois, e detalhe do saldo ao passar o mouse ou tocar numa barra.
+
+## Dados de exemplo (fictícios)
+Materiais (código, descrição, unidade, limite do Kanban): 10002345 Resistor SMD 10kΩ 0603 un 20000; 10002354 Capacitor cerâmico 100nF un 20000; 10002360 Capacitor eletrolítico 470µF 25V un 10000; 10002377 Diodo retificador 1N4007 un 20000; 10002410 Placa de circuito impresso 120x80 mm un 3000; 10003120 Chapa de aço 1,2 mm kg 1000; 10003121 Chapa de aço 1,5 mm kg 1000; 10003200 Motor DC 12 V un 2000; 10004500 Parafuso M3 x 8 inox un 20000; 10004510 Parafuso M4 x 12 zincado un 20000; 10005010 Resina ABS natural kg 1000; 10005011 Resina ABS preta kg 1000; 10005030 Resina PC transparente kg 800; 10006780 Fio de cobre 0,5 mm m 5000; 10006790 Fio de cobre 0,75 mm m 5000; 10006810 Chicote elétrico 6 vias un 4000; 10007100 Display LCD 16x2 un 1000; 10008200 Caixa de papelão ondulado 40x30x20 un 5000; 10008210 Espuma de proteção EPS un 5000; 10009100 Chapa de alumínio 1,0 mm kg 1000.
+
+Fornecedores (cidade, GS1): Metalúrgica Alfa (Betim MG, Sim: 10003120, 10003121, 10009100); Eletrônica Beta (Extrema MG, Sim: 10002345, 10002354, 10002360, 10002377); Plásticos Gama (Pouso Alegre MG, Parcial: 10005010, 10005011, 10005030); Fixadores Delta (Campinas SP, Não: 10004500, 10004510); Cabos Ômega (Contagem MG, Parcial: 10006780, 10006790, 10006810); Placas Zeta (São José dos Campos SP, Parcial: 10002410); Motores Sigma (Joinville SC, Não: 10003200); Displays Kappa (Manaus AM, Sim: 10007100); Embalagens Lambda (Poços de Caldas MG, Parcial: 10008200, 10008210).
+
+Estoque inicial (código, lote, qtd, endereço): 10003120 L2610-02 420 A-1-1; 10005010 L2610-11 800 B-2-1; 10004500 L2611-01 15000 C-1-2; 10002345 L2610-05 12000 A-1-2; 10002354 L2610-08 4000 B-1-1; 10002360 L2610-20 6000 A-2-1; 10002377 L2611-02 15000 B-1-2; 10002410 L2610-30 1800 C-2-1; 10003121 L2610-04 600 A-3-1; 10004510 L2610-41 9000 C-3-1; 10005011 L2610-14 500 A-3-2; 10005030 L2611-03 150 B-3-1; 10006780 L2610-12 3000 D-1-1; 10006790 L2610-16 3500 D-2-2; 10006810 L2610-33 4600 D-1-2; 10008200 L2611-09 3200 D-2-1; 10008210 L2611-10 4000 E-1-2; 10009100 L2610-50 700 E-1-1. Sem estoque: 10003200 e 10007100. Endereços: ruas A a E × prateleiras 1 a 3 × níveis 1 e 2 (formato A-1-1), 30 no total.
+
+## Qualidade
+- Nenhum `<form>`; use addEventListener e eventos de clique/entrada.
+- Use delegação de eventos em listas que são redesenhadas (innerHTML).
+- Escape de texto digitado antes de colocar em innerHTML.
+- Uso de aspas tipográficas (’ “ ”) nos textos visíveis e `Intl`/`toLocaleString('pt-BR')` para valores em R$.
+- Teste mentalmente os fluxos: GS1 → Recebimento → Validar → Liberar → Estoque/Fornecedores/Indicadores; Kanban → Registrar saída → alerta de reposição.
