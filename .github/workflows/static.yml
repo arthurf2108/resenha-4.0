@@ -1,7 +1,4 @@
-Crie um site de protótipo em um único arquivo `index.html` (HTML + CSS + JavaScript puro, sem frameworks, sem build, sem localStorage; todo o estado fica em memória). O site é um protótipo para o Projeto de Inovação do SENAI Patos de Minas, que resolve o problema de identificação e controle de matéria-prima na Panasonic do Brasil (recebimento, registro no SAP e armazenagem). A solução do TCC combina etiqueta GS1-128, Kanban, treinamento e endomarketing, aproveitando leitores e SAP já existentes. Todo o texto da interface fica em português do Brasil.
 
-## Visual
-- Estilo corporativo Panasonic: azul #0041C0, fundo #F3F4F6, cartões brancos com borda #D9DCE1 e cantos de 2px, botões retos, campos com linha inferior que fica azul ao focar.
 - Topo: barra branca com o texto "Panasonic" (negrito, azul) e, abaixo, uma faixa azul com gradiente animado devagar, uma faixa de barras de código de barras deslizando à direita e o título "Identificação de matéria-prima sem erro, sem retrabalho". Etiqueta pequena: "Projeto de Inovação · SENAI Patos de Minas".
 - Abas com ícone emoji e sublinhado azul na ativa, com rolagem horizontal no celular. A primeira aba é a que abre.
 - Modo claro e escuro (prefers-color-scheme) com variáveis CSS. Layout responsivo, com `viewport-fit=cover` e safe-area.
