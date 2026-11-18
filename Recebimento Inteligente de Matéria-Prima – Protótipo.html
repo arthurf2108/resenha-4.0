@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recebimento Inteligente de Matéria-Prima – Protótipo</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f4f6;--card:#fff;--tx:#1a1a1a;--mut:#5f6368;--bd:#d9dce1;--pri:#0041c0;--pri-tx:#fff;--ok:#0a7d4a;--okbg:#e3f6ec;--wa:#8a5a00;--wabg:#fff3d6;--er:#b3261e;--erbg:#fde8e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#171f35;--tx:#e8ecf7;--mut:#9aa6c6;--bd:#2a3556;--pri:#5b8cff;--pri-tx:#0b1020;--ok:#5fd6a0;--okbg:#12362a;--wa:#f5c963;--wabg:#3a2e10;--er:#ff8a80;--erbg:#3d1a18}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#171f35;--tx:#e8ecf7;--mut:#9aa6c6;--bd:#2a3556;--pri:#5b8cff;--pri-tx:#0b1020;--ok:#5fd6a0;--okbg:#12362a;--wa:#f5c963;--wabg:#3a2e10;--er:#ff8a80;--erbg:#3d1a18}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.top{background:var(--card);border-bottom:1px solid var(--bd)}
+.top div{max-width:1000px;margin:auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-size:1.5rem;font-weight:800;letter-spacing:.04em;color:var(--pri)}
+.top small{color:var(--mut);text-align:right}
+header{background:#0041c0;color:#fff}
+header div{max-width:1000px;margin:auto;padding:36px 16px 32px}
+header .ey{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin:0 0 8px}
+h1{font-size:1.7rem;font-weight:300;margin:0;line-height:1.2}
+header p{margin:10px 0 0;max-width:640px;opacity:.9}
+nav{display:flex;gap:0;max-width:1000px;margin:0 auto;padding:0 16px;overflow-x:auto;border-bottom:1px solid var(--bd)}
+nav button{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--mut);padding:14px 18px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+nav button.on{color:var(--pri);border-bottom-color:var(--pri)}
+main{max-width:1000px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-top:3px solid var(--pri);border-radius:2px;padding:20px;margin-bottom:16px}
+h2{font-size:1.05rem;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--mut);margin-bottom:4px}
+input,select{width:100%;padding:10px;border:1px solid var(--bd);border-bottom:2px solid var(--mut);border-radius:2px;background:var(--bg);color:var(--tx);font:inherit}
+input:focus,select:focus{outline:none;border-bottom-color:var(--pri)}
+.btn{background:var(--pri);color:var(--pri-tx);border:1px solid var(--pri);padding:11px 22px;border-radius:2px;font:inherit;font-weight:600;letter-spacing:.02em;cursor:pointer}
+.btn.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.msg{padding:10px 12px;border-radius:8px;margin-top:8px;font-size:.92rem}
+.msg.ok{background:var(--okbg);color:var(--ok)}.msg.wa{background:var(--wabg);color:var(--wa)}.msg.er{background:var(--erbg);color:var(--er)}
+.hint{margin-top:6px;font-size:.88rem;color:var(--mut)}
+.label{border:2px dashed var(--tx);border-radius:8px;padding:12px;display:flex;gap:12px;align-items:center;max-width:460px;background:#fff;color:#000}
+.label .t{font-size:.8rem;line-height:1.35}.label b{font-size:1.05rem}
+#qr{background:#fff;padding:4px;flex:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--pri);border-radius:2px;padding:14px}
+.kpi b{font-size:1.6rem;display:block}.kpi span{color:var(--mut);font-size:.85rem}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mut);font-weight:600}
+.hidden{display:none}
+.kb{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.kc{border:1px solid var(--bd);border-left:6px solid var(--ok);padding:10px;border-radius:2px;background:var(--bg);font-size:.88rem}
+.kc.wa{border-left-color:#e0a100}.kc.er{border-left-color:var(--er)}
+.bar{height:6px;background:var(--bd);margin:8px 0}.bar i{display:block;height:100%;background:var(--pri)}
+ul.l{margin:0;padding-left:20px}ul.l li{margin-bottom:6px}
+.st{font-weight:700;color:var(--pri);margin:18px 0 8px}
+.rd{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.rd div{border:1px solid var(--bd);border-left:4px solid var(--pri);padding:10px;background:var(--bg)}
+.rd small{display:block;color:var(--mut);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.rd b{font-size:1.05rem}
+.tech{font:.68rem/1.3 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;color:#333;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.tc{border:1px solid var(--bd);background:var(--bg);color:var(--tx);padding:9px 12px;border-radius:2px;cursor:pointer;font:inherit;font-size:.88rem}
+.tc.on{background:var(--pri);color:var(--pri-tx);border-color:var(--pri)}
+.tpanel{border:1px solid var(--bd);border-left:4px solid var(--pri);padding:14px;margin-top:12px;background:var(--bg)}
+.tpanel h4{margin:0 0 4px;font-size:1.05rem}
+.tmeta{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.tsel label{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:.92rem;margin:6px 0}
+.tsel input{width:auto}
+.poster{background:#fff;color:#111;border:3px solid #0041c0;padding:16px;max-width:480px}
+.poster b{display:block;background:#0041c0;color:#fff;padding:8px 12px;margin:-16px -16px 12px}
+.ps{display:flex;gap:10px;align-items:center;margin:8px 0}
+.ps span{background:#0041c0;color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;flex:none;font-weight:700}
+.pk{font-size:.8rem;margin-top:12px;line-height:2}
+.pk i{display:inline-block;width:12px;height:12px;margin:0 4px 0 8px;vertical-align:middle}
+details{margin-top:16px;color:var(--mut)}details summary{cursor:pointer}
+.tag{padding:2px 8px;border-radius:999px;font-size:.75rem}
+.tag.ok{background:var(--okbg);color:var(--ok)}.tag.wa{background:var(--wabg);color:var(--wa)}.tag.er{background:var(--erbg);color:var(--er)}
+footer{text-align:center;color:var(--mut);font-size:.8rem;padding:8px 16px 24px}
+
+/* ---- vida e movimento ---- */
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes flow{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+@keyframes slide{to{background-position:104px 0}}
+@keyframes glowa{50%{box-shadow:0 0 0 4px rgba(224,161,0,.28)}}
+@keyframes glowe{50%{box-shadow:0 0 0 4px rgba(179,38,30,.28)}}
+@keyframes scan{0%{top:0;opacity:1}50%{top:calc(100% - 3px);opacity:1}99%{top:0;opacity:1}100%{top:0;opacity:0}}
+header{position:relative;overflow:hidden;background:linear-gradient(120deg,#0041c0,#2a6cf0,#0041c0);background-size:220% 220%;animation:flow 14s ease infinite}
+header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:42%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 3px,transparent 3px 8px,rgba(255,255,255,.16) 8px 9px,transparent 9px 16px,rgba(255,255,255,.16) 16px 20px,transparent 20px 26px);animation:slide 5s linear infinite;-webkit-mask-image:linear-gradient(90deg,transparent,#000 55%);mask-image:linear-gradient(90deg,transparent,#000 55%);pointer-events:none}
+header div{position:relative;z-index:1}
+h1{animation:fin .7s ease both}
+header .ey{animation:fin .5s ease both}
+section:not(.hidden){animation:fin .35s ease}
+nav button{transition:color .2s,border-color .2s,background .2s}
+nav button:hover{background:rgba(0,65,192,.08);color:var(--pri)}
+.btn{transition:transform .15s,box-shadow .15s,filter .15s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,65,192,.3);filter:brightness(1.07)}
+.btn:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+.tc{transition:transform .15s,background .2s}.tc:hover{transform:translateY(-1px);border-color:var(--pri)}
+.kpi,.kc{transition:transform .2s,box-shadow .2s}
+.kpi:hover,.kc:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,30,100,.14)}
+.kpi b{font-size:2rem;color:var(--pri)}.kpi b.pop{animation:pop .5s}
+.msg{animation:pop .35s ease}
+.tpanel,.poster{animation:fin .3s ease}
+.tag.ok{animation:pop .4s ease}
+.kc.wa{animation:glowa 1.8s ease-in-out infinite}.kc.er{animation:glowe 1.4s ease-in-out infinite}
+.bar i{transition:width .6s ease}
+.label{position:relative;overflow:hidden}
+.label.scan::after{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:#e53935;box-shadow:0 0 10px #e53935;opacity:0;animation:scan 1s ease-in-out forwards}
+tbody tr{transition:background .15s}tbody tr:hover{background:rgba(0,65,192,.07)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.bad{border-color:var(--er)!important;border-bottom-color:var(--er)!important;background:var(--erbg)!important}
+.chk div{display:flex;gap:10px;align-items:flex-start;margin:8px 0;padding:10px;background:var(--bg);border-left:4px solid var(--ok)}
+.big{font-size:2.1rem;font-weight:700;color:var(--pri);margin:6px 0 12px}.big small{display:block;font-size:.85rem;font-weight:400;color:var(--mut)}
+.cr{margin:12px 0}.cr .t{display:flex;justify-content:space-between;gap:10px;font-size:.9rem}.cr i{display:block;height:10px;background:var(--pri);margin-top:4px;transition:width .5s}
+.mc{position:relative;height:150px;display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid var(--bd);margin-top:14px}
+.mb{flex:1;height:100%;display:flex;align-items:flex-end}.mb i{display:block;width:100%;background:var(--pri);opacity:.55;transition:height .4s}.mb i.g{background:var(--ok);opacity:1}
+.ml{position:absolute;left:0;right:0;border-top:2px dashed var(--er);color:var(--er);font-size:.72rem;text-align:right}
+#gan{padding:0;accent-color:var(--pri)}
+.chart svg{width:100%;height:auto;display:block;margin-top:12px}
+.chart .gl{stroke:var(--bd);stroke-width:1}
+.chart text{fill:var(--mut);font:14px system-ui,sans-serif}
+.chart .b{fill:var(--pri);opacity:.6;cursor:pointer;transition:opacity .15s}
+.chart .b.g{fill:var(--ok);opacity:.9}.chart .b:hover{opacity:1}
+.chart .iv{stroke:var(--er);stroke-dasharray:6 4;stroke-width:2}
+.chart text.it{fill:var(--er);font-weight:600}
+.chart .pe{stroke:var(--ok);stroke-dasharray:3 3;stroke-width:2}
+.chart text.pt{fill:var(--ok);font-weight:700;paint-order:stroke;stroke:var(--card);stroke-width:4px}
+.kpi em{font-style:normal;font-size:1.3rem;display:block}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.qrow{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.ob{margin:8px 0;font-size:.85rem}.ob div{display:flex;justify-content:space-between}.ob i{display:block;height:8px;margin-top:3px;transition:width .5s}
+.sk{display:flex;height:22px;border-radius:2px;overflow:hidden;background:var(--bd)}.sk span{display:block;transition:width .5s}
+.lg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--mut);margin-top:6px}.lg i{display:inline-block;width:10px;height:10px;margin-right:4px}
+.mrow{display:flex;align-items:center;gap:6px;margin:6px 0}.mrow>b{width:44px;font-size:.8rem}
+.mc2{flex:1;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.mc2 div{height:34px;display:grid;place-items:center;font-size:.68rem;border:1px solid var(--bd);border-radius:2px;background:var(--bg);color:var(--mut)}
+.mc2 div.o{background:var(--pri);color:var(--pri-tx);border-color:var(--pri);font-weight:600}
+.fe{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bd);font-size:.88rem}.fe i{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}.fe small{color:var(--mut);margin-left:auto;white-space:nowrap}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.fc{border:1px solid var(--bd);border-top:3px solid var(--pri);padding:12px;background:var(--bg);border-radius:2px}
+.fc .fh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fc small{color:var(--mut)}
+.fc ul{list-style:none;margin:10px 0;padding:0;font-size:.85rem}.fc li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--bd)}
+.fc .adv{font-size:.8rem;color:var(--mut)}
+.sgc{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.sc{text-align:left;border:1px solid var(--bd);border-left:4px solid var(--bd);background:var(--bg);color:var(--tx);padding:10px;cursor:pointer;font:inherit;font-size:.88rem;border-radius:2px;transition:transform .15s,box-shadow .15s}
+.sc:hover{transform:translateY(-1px)}
+.sc.on{border-color:var(--pri);border-left-color:var(--pri);box-shadow:0 0 0 2px rgba(0,65,192,.22)}
+.sc small{display:block;color:var(--mut);margin:2px 0 6px}
+.sc .rc{font-size:.72rem;color:var(--ok);font-weight:700;margin-top:6px}
+.gtw{overflow-x:auto;margin-top:12px}
+.gt{display:grid;grid-template-columns:170px repeat(12,minmax(34px,1fr));gap:2px;font-size:.78rem;min-width:620px}
+.gt div{padding:7px 4px;text-align:center}.gt .lb{text-align:left;font-weight:600}
+.gt .wk{color:var(--mut);background:var(--bg)}.gt .wk.cur{background:var(--pri);color:var(--pri-tx)}
+.gt .cell{background:var(--bg)}.gt .cell.on{background:var(--pri);opacity:.5}.gt .cell.on.cur{opacity:1}
+.gt .cell.cur:not(.on){outline:1px dashed var(--pri)}
+.rk{border:1px solid var(--bd);border-left:4px solid #e0a100;background:var(--bg);padding:12px;margin:10px 0;transition:border-color .3s}
+.rk.ok{border-left-color:var(--ok)}.rk .ac{margin-top:6px}
+.rk label{display:flex;gap:8px;align-items:center;color:var(--tx);margin:8px 0 0}.rk input{width:auto}
+</style>
+</head>
+<body>
+<div class="top"><div><span class="brand">Panasonic</span><small>Logística · Recebimento de materiais</small></div></div>
+<header><div>
+<p class="ey">Projeto de Inovação · SENAI Patos de Minas</p>
+<h1>Identificação de matéria-prima<br>sem erro, sem retrabalho</h1>
+<p>Conferência guiada, etiqueta padronizada com QR Code e espelho do estoque (simulação SAP).</p>
+</div></header>
+<nav id="nav">
+<button class="on" data-t="gs1">🏷️ GS1-128</button>
+<button data-t="rec">📥 Recebimento</button>
+<button data-t="est">🗃️ Estoque</button>
+<button data-t="for">🏭 Fornecedores</button>
+<button data-t="dash">📊 Indicadores</button>
+<button data-t="kan">🧩 Kanban</button>
+<button data-t="trn">🎓 Treinamento e Endomarketing</button>
+<button data-t="dia">🔍 Diagnóstico</button>
+<button data-t="cro">🗓️ Cronograma</button>
+<button data-t="via">💰 Viabilidade</button>
+</nav>
+<main>
+
+<section id="rec" class="hidden">
+<div class="card">
+<h2>Conferência do material</h2>
+<div class="grid">
+<div><label for="cod">Código SAP (8 dígitos)</label><input id="cod" inputmode="numeric" maxlength="8" placeholder="Ex.: 10002345"></div>
+<div><label for="lote">Lote</label><input id="lote" placeholder="Ex.: L2611-07"></div>
+<div><label for="forn">Fornecedor (escolha abaixo ou digite)</label><input id="forn" list="dsup" placeholder="Ex.: Metalúrgica Alfa"><datalist id="dsup"></datalist></div>
+<div><label for="qnf">Quantidade na NF</label><input id="qnf" type="number" min="0"></div>
+<div><label for="qct">Quantidade contada</label><input id="qct" type="number" min="0"></div>
+<div><label for="val">Validade</label><input id="val" type="date"></div>
+<div><label for="loc">Endereço de armazenagem</label><select id="loc"></select></div>
+</div>
+<div class="st" style="margin-top:16px">Fornecedor da peça</div>
+<div id="fchips" class="sgc"></div>
+<div id="lookup"></div>
+<label style="margin-top:12px;display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="conf" style="width:auto"> Confirmo que a descrição acima confere com o material físico</label>
+<div class="row"><button class="btn" id="validar">Validar e gerar etiqueta</button><button class="btn sec" id="limpar">Limpar</button></div>
+<div id="msgs"></div>
+</div>
+
+<div class="card hidden" id="etqCard">
+<h2>Etiqueta padronizada</h2>
+<div class="label"><div id="qr"></div><div class="t" id="etq"></div></div>
+<p class="hint">Modelo único e legível, gerado pelo sistema: elimina etiqueta escrita à mão ou incompleta. Pode ser impressa em impressora comum.</p>
+<div class="row"><button class="btn" id="liberar">Liberar para o estoque (simular lançamento no SAP)</button></div>
+</div>
+</section>
+
+<section id="est" class="hidden">
+<div class="card"><h2>Estoque registrado</h2>
+<div class="grid"><div><label for="busca">Buscar por código, descrição ou lote</label><input id="busca" placeholder="Digite para filtrar"></div></div>
+<div class="scroll" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Lote</th><th>Qtd</th><th>Endereço</th><th>Status</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div></section>
+
+<section id="dash" class="hidden">
+<div class='card'><h2>Solução proposta no TCC (SENAI Patos de Minas)</h2>
+<p>Um <b>Processo Integrado de Gestão Visual e Rastreabilidade</b>, e não um software novo: etiquetas <b>GS1-128</b> + organização física com <b>Kanban</b> + <b>treinamento</b> da equipe, aproveitando os leitores e o SAP que a Panasonic já possui. A equipe atua como consultoria que implanta a solução na Panasonic. Investimento estimado: <b>R$ 91.000,00</b>.</p></div>
+<div class="kpis">
+<div class="kpi"><em>✅</em><b id="k1">0</b><span>Recebimentos liberados</span></div>
+<div class="kpi"><em>🛑</em><b id="k2">0</b><span>Erros barrados antes do SAP</span></div>
+<div class="kpi"><em>⚖️</em><b id="k3">0</b><span>Divergências de quantidade</span></div>
+<div class="kpi"><em>🔁</em><b id="k4">0</b><span>Duplicidades evitadas</span></div>
+<div class="kpi"><em>📤</em><b id="k5">0</b><span>Saídas registradas</span></div>
+<div class="kpi"><em>🧩</em><b id="k6">0</b><span>Materiais para repor</span></div>
+<div class="kpi"><em>🗃️</em><b id="k7">0</b><span>Endereços ocupados</span></div>
+<div class="kpi"><em>🎯</em><b id="k8">—</b><span>Taxa de acerto</span></div>
+</div>
+<div class="two">
+<div class="card"><h2>Qualidade do recebimento</h2>
+<div class="qrow"><div id="dn"></div><div id="oc" style="flex:1;min-width:180px"></div></div>
+<p class="hint">Taxa de acerto = liberados ÷ (liberados + bloqueados). Cada ocorrência barrada antes do SAP é um retrabalho evitado.</p></div>
+<div class="card"><h2>Saúde do estoque (Kanban)</h2>
+<div id="ks"></div><div id="kl" style="margin-top:10px"></div></div>
+</div>
+<div class="two">
+<div class="card"><h2>Mapa do almoxarifado</h2><div id="mp"></div>
+<p class="hint" id="mpt"></p></div>
+<div class="card"><h2>Atividade recente</h2><div id="fd"></div></div>
+</div>
+<div class="card"><h2>Indicadores de sucesso do projeto</h2>
+<p>O TCC acompanha cinco indicadores. As metas ainda serão definidas com a Panasonic.</p>
+<div class="scroll"><table><thead><tr><th>Indicador</th><th>Meta no TCC</th><th>Onde ver no protótipo</th></tr></thead><tbody>
+<tr><td>Acuracidade de estoque</td><td>98%</td><td>Cartão 🎯 Taxa de acerto</td></tr>
+<tr><td>Tempo médio de conferência no recebimento</td><td>redução de 94%</td><td>Calculadora dos workshops (Treinamento e Endomarketing)</td></tr>
+<tr><td>Lançamentos manuais no SAP</td><td>redução de 92%</td><td>Aba GS1-128: a leitura preenche os campos</td></tr>
+<tr><td>Itens trocados ou duplicados por mês</td><td>a definir</td><td>Cartões 🛑 Erros barrados e 🔁 Duplicidades evitadas</td></tr>
+<tr><td>Tempo entre recebimento e liberação</td><td>a definir</td><td>Fluxo Recebimento → Estoque</td></tr>
+</tbody></table></div></div>
+<div class="card"><h2>Como o protótipo ataca o problema</h2>
+<div class="scroll"><table><thead><tr><th>Problema da demanda</th><th>Resposta no protótipo</th></tr></thead><tbody>
+<tr><td>Código trocado ou inexistente</td><td>Validação contra cadastro e sugestão de códigos parecidos</td></tr>
+<tr><td>Etiqueta ilegível ou incompleta</td><td>Etiqueta padrão com QR Code gerada pelo sistema</td></tr>
+<tr><td>Duplicidade de estoque</td><td>Bloqueio de mesmo código + lote já registrado</td></tr>
+<tr><td>Conferência manual lenta</td><td>Fluxo único, com NF x contagem automática</td></tr>
+<tr><td>Desorganização física</td><td>Endereço obrigatório (rua-prateleira-nível)</td></tr>
+</tbody></table></div></div>
+</section>
+<section id='trn' class='hidden'>
+<div class='card'><h2>Treinamento</h2>
+<div class='st' style='margin-top:0'>Toque em um treinamento para ver os detalhes</div>
+<div class='chips' id='tchips'></div>
+<div class='tpanel' id='tpanel'></div>
+<div class='st'>Monte o plano de formação</div>
+<div class='tsel' id='tsel'></div>
+<div class='msg ok' id='tsum'></div>
+<p class='hint'>Total de 20 h, igual à formação prevista no TCC (R$ 450,00 por hora = R$ 9.000,00). A divisão por módulo e os públicos são sugestões.</p>
+</div>
+
+<div class='card'><h2>Endomarketing</h2>
+<p>Para a equipe “comprar a ideia”, o novo processo é divulgado internamente em três ações. Toque em uma delas:</p>
+<div class='chips' id='echips'><button class='tc on' data-e='e1'>1 · Workshops práticos</button><button class='tc' data-e='e2'>2 · Gestão à vista</button><button class='tc' data-e='e3'>3 · Campanha Zero Erro</button></div>
+
+<div class='tpanel ep' id='e1'><h4>Workshops práticos</h4>
+<p>Simular o processo antigo e o novo (bipe GS1-128) lado a lado para mostrar o ganho de tempo. Preencha com os tempos medidos no workshop:</p>
+<div class='grid'>
+<div><label for='ta'>Processo antigo (segundos por recebimento)</label><input id='ta' type='number' min='0' placeholder='Ex.: 120'></div>
+<div><label for='tn'>Com bipe GS1-128 (segundos)</label><input id='tn' type='number' min='0' placeholder='Ex.: 30'></div>
+<div><label for='tq'>Recebimentos por dia</label><input id='tq' type='number' min='0' placeholder='Ex.: 40'></div></div>
+<div class='msg ok' id='tres'>Informe os três valores para ver o ganho.</div></div>
+
+<div class='tpanel ep hidden' id='e2'><h4>Gestão à vista</h4>
+<p>Banner para o almoxarifado explicando a leitura das novas etiquetas e as cores do Kanban:</p>
+<div class='poster'><b>ATENÇÃO, ALMOXARIFADO</b>
+<div class='ps'><span>1</span> Bipe a etiqueta GS1-128</div>
+<div class='ps'><span>2</span> Confira material, lote e quantidade na tela</div>
+<div class='ps'><span>3</span> Guarde no endereço indicado (rua-prateleira-nível)</div>
+<div class='pk'><i style='background:#0a7d4a'></i>Verde: estoque OK <i style='background:#e0a100'></i>Amarelo: cartão voltou, repor <i style='background:#b3261e'></i>Vermelho: acima do limite</div></div></div>
+
+<div class='tpanel ep hidden' id='e3'><h4>Campanha Zero Erro</h4>
+<p>O turno de recebimento que mantiver 100% de acuracidade de estoque no mês é reconhecido (certificado ou destaque em mural). Um prêmio com custo fica por conta da Panasonic e não está no investimento. Mexa nos controles (valores de exemplo):</p>
+<div id='zrows'></div></div>
+</div>
+</section>
+<section id='gs1'>
+<div class='card'><h2>Etiquetagem inteligente GS1-128</h2>
+<p>Um único bipe traz material, lote, quantidade e validade para o SAP, sem digitação. Faça em 3 passos:</p>
+<div class='st'>Passo 1. Monte a etiqueta</div>
+<div class='grid'>
+<div><label for='gm'>Material</label><select id='gm'></select></div>
+<div><label for='gl'>Lote</label><input id='gl' value='L2611-07'></div>
+<div><label for='gq'>Quantidade</label><input id='gq' type='number' min='1' value='500'></div>
+<div><label for='gv'>Validade</label><input id='gv' type='date' value='2027-11-30'></div>
+</div>
+<div class='row'><button class='btn' id='gera'>Gerar etiqueta</button></div>
+<div id='gl2'></div>
+<div class='st'>Passo 2. Simule o bipe do leitor</div>
+<div class='row' style='margin-top:0'><button class='btn' id='bipe' disabled>Simular bipe</button></div>
+<div id='gout'></div>
+<div class='st'>Passo 3. Leve para o recebimento</div>
+<div class='row' style='margin-top:0'><button class='btn sec' id='envia' disabled>Enviar para o Recebimento</button></div>
+<details><summary>Avançado: editar o código técnico (para testar erros)</summary>
+<label for='gs1' style='margin-top:8px'>Código lido pelo leitor</label><input id='gs1' placeholder='Gere a etiqueta no passo 1'>
+<p class='hint'>Dica: mude o último dígito do número depois de (01) para simular um GTIN digitado errado.</p></details></div>
+</section>
+<section id='kan' class='hidden'>
+<div class='card'><h2>Gestão visual com Kanban</h2>
+<p>Cada código tem um limite físico e um ponto de reposição (30%). Ao consumir, o cartão volta e sinaliza a reposição. Use Registrar saída no cartão, ou o formulário abaixo, para baixar o estoque.</p>
+<div class='kb' id='kb'></div></div>
+<div class='card' id='sform'><h2>Registrar saída de material</h2>
+<p>Registre o que foi retirado do estoque: consumo da produção, venda ou perda. A baixa é feita primeiro nos lotes mais antigos (PEPS).</p>
+<div class='grid'>
+<div><label for='sm'>Material</label><select id='sm'></select></div>
+<div><label for='sq'>Quantidade retirada</label><input id='sq' type='number' min='1'></div>
+<div><label for='sd'>Motivo</label><select id='sd'><option>Consumo da produção</option><option>Venda</option><option>Perda ou avaria</option></select></div>
+<div><label for='sr'>Responsável</label><input id='sr' placeholder='Nome ou matrícula'></div></div>
+<div id='sinfo' class='hint'></div>
+<div class='row'><button class='btn' id='sreg'>Registrar saída</button></div>
+<div id='smsg'></div>
+<div class='st'>Últimas movimentações</div>
+<div class='scroll'><table><thead><tr><th>Hora</th><th>Material</th><th>Qtd</th><th>Motivo</th><th>Responsável</th></tr></thead><tbody id='slog'><tr><td colspan='5'>Nenhuma saída registrada ainda.</td></tr></tbody></table></div></div>
+</section>
+<section id='via' class='hidden'>
+<div class='card'><h2>Viabilidade: vale a pena?</h2>
+<p>Resposta curta: <b>bom custo-benefício, aproveitando leitores e SAP que já existem</b>. Veja em 3 passos.</p>
+
+<div class='st'>1. Precisa de tecnologia nova?</div>
+<div class='chk'>
+<div>✅ <span>O SAP suporta a leitura de códigos GS1, sujeita à configuração da TI: é preciso habilitar os identificadores (IAs) na transação de recebimento (ex.: MIGO) e confirmar isso antes da implantação.</span></div>
+<div>✅ <span>Os leitores de código de barras e o SAP já existem; o investimento vai para processo, treinamento e padronização visual.</span></div>
+<div>✅ <span>O Kanban é analógico e não depende de internet. Já a leitura no recebimento depende de rede e SAP, por isso é preciso ter um procedimento de contingência.</span></div>
+</div>
+
+<div class='st'>2. Quanto custa?</div>
+<div class='big'>R$ 91.000,00 <small>investimento total estimado</small></div>
+<div class='cr'><div class='t'><span>Consultoria, treinamento e adequação do estoque</span><b>R$ 50.000,00</b></div><i style='width:54.9%'></i></div>
+<div class='cr'><div class='t'><span>Licença GS1 Brasil (1 ano)</span><b>R$ 22.000,00</b></div><i style='width:24.2%'></i></div>
+<div class='cr'><div class='t'><span>Visita técnica (5 dias × R$ 2.000,00)</span><b>R$ 10.000,00</b></div><i style='width:11%'></i></div>
+<div class='cr'><div class='t'><span>Formação (20 horas × R$ 450,00)</span><b>R$ 9.000,00</b></div><i style='width:9.9%'></i></div>
+<p class='hint'>As quantidades de visitas e de horas de formação são premissas do projeto, a confirmar com a empresa. A cobrança é feita por contrato de prestação de serviços.</p>
+<div class='st'>3. Em quanto tempo o dinheiro volta?</div>
+<p>Payback simples = investimento ÷ economia por mês. O TCC estima retorno em cerca de <b>quatro meses</b>, a confirmar com dados reais da empresa. O controle começa em R$ 22.750 por mês, o ganho que leva a esse prazo:</p>
+<label for='gan'>Economia por mês com menos erros, retrabalho e divergências: <b id='gv'></b></label>
+<input id='gan' type='range' min='5000' max='100000' step='250' value='22750'>
+<div class='msg ok' id='pb'></div>
+<div class='rd' id='pst'></div>
+<div class='chart' id='pch'></div>
+<div class='hint' id='pinfo'>Toque ou passe o mouse em uma barra para ver o saldo daquele mês.</div>
+<p class='hint'>Barras azuis: o investimento ainda está sendo pago. Barras verdes: já passou do investimento (lucro). Linha vermelha tracejada: valor investido.</p>
+</div>
+</section>
+<section id='for' class='hidden'>
+<div class='card'><h2>Fornecedores das peças</h2>
+<p>Quem fornece cada material e se a etiqueta já chega no padrão GS1-128 (dados de exemplo). Pela proposta do TCC, quando o fornecedor não envia no padrão, a etiqueta é gerada na doca.</p>
+<div id='fsum' class='rd'></div>
+<div class='chips' style='margin-top:14px'><button class='tc on' data-v='f'>Por fornecedor</button><button class='tc' data-v='p'>Por peça</button></div>
+<div class='grid' style='margin-top:12px'><div><label for='fq'>Buscar fornecedor ou material</label><input id='fq' placeholder='Ex.: Alfa, resina, 10004500'></div></div>
+<div id='fl' style='margin-top:12px'></div></div>
+</section>
+<section id='dia' class='hidden'>
+<div class='card'><h2>Diagnóstico do problema</h2>
+<p>Alto índice de falhas operacionais, com perda de confiabilidade e de agilidade no recebimento, no registro e no armazenamento. Toque em uma etapa do processo:</p>
+<div class='chips' id='dchips'></div>
+<div class='tpanel' id='dpanel'></div>
+<p class='hint'>Fonte: Quadro 1 do TCC. Para medir a evolução, será preciso registrar a situação inicial: falhas por mês, tempo médio de conferência e divergências no SAP (dados a obter com a Panasonic).</p></div>
+<div class='card'><h2>Benefícios esperados</h2>
+<div class='chk'>
+<div>📉 <span>Menos erros de identificação e retrabalho, com etiquetas padronizadas e leitura por código de barras.</span></div>
+<div>🔒 <span>Mais confiabilidade das informações no SAP: a leitura substitui a digitação manual de lotes e códigos.</span></div>
+<div>⚡ <span>Conferência e liberação de materiais mais rápidas, com menor tempo de operação no recebimento.</span></div>
+<div>🧩 <span>Estoque físico mais organizado: a gestão visual do Kanban evita duplicidades e trocas de itens.</span></div>
+<div>📈 <span>Mais produtividade e controle eficiente dos materiais, com menos paradas e correções.</span></div>
+</div></div>
+</section>
+<section id='cro' class='hidden'>
+<div class='card'><h2>Cronograma de implantação</h2>
+<p>Proposta inicial de 12 semanas, a ajustar com a empresa. Mova o controle para ver em que etapa o projeto estaria.</p>
+<label for='sem'>Semana: <b id='semv'>1</b></label>
+<input id='sem' type='range' min='1' max='12' value='1' style='padding:0;accent-color:var(--pri)'>
+<div class='gtw'><div class='gt' id='gantt'></div></div>
+<div class='msg ok' id='semt'></div>
+<p class='hint'>Fonte: Quadro 3 do TCC. Previstas 5 visitas técnicas e 20 horas de formação.</p></div>
+</section>
+</main>
+<footer>Protótipo de validação de conceito com dados fictícios. Custo baixo: roda no navegador, sem licenças extras.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const CAT={
+"10002345":{d:"Resistor SMD 10kΩ 0603",u:"un"},
+"10002354":{d:"Capacitor cerâmico 100nF",u:"un"},
+"10003120":{d:"Chapa de aço 1,2 mm",u:"kg"},
+"10003121":{d:"Chapa de aço 1,5 mm",u:"kg"},
+"10004500":{d:"Parafuso M3 x 8 inox",u:"un"},
+"10005010":{d:"Resina ABS natural",u:"kg"},
+"10005011":{d:"Resina ABS preta",u:"kg"},
+"10006780":{d:"Fio de cobre 0,5 mm",u:"m"},
+"10002360":{d:"Capacitor eletrolítico 470µF 25V",u:"un"},
+"10002377":{d:"Diodo retificador 1N4007",u:"un"},
+"10002410":{d:"Placa de circuito impresso 120x80 mm",u:"un"},
+"10003200":{d:"Motor DC 12 V",u:"un"},
+"10004510":{d:"Parafuso M4 x 12 zincado",u:"un"},
+"10005030":{d:"Resina PC transparente",u:"kg"},
+"10006790":{d:"Fio de cobre 0,75 mm",u:"m"},
+"10006810":{d:"Chicote elétrico 6 vias",u:"un"},
+"10007100":{d:"Display LCD 16x2",u:"un"},
+"10008200":{d:"Caixa de papelão ondulado 40x30x20",u:"un"},
+"10008210":{d:"Espuma de proteção EPS",u:"un"},
+"10009100":{d:"Chapa de alumínio 1,0 mm",u:"kg"}};
+const LOCS=[];["A","B","C","D","E"].forEach(r=>[1,2,3].forEach(p=>[1,2].forEach(n=>LOCS.push(`${r}-${p}-${n}`))));
+let estoque=[
+{c:"10003120",l:"L2610-02",q:420,e:"A-1-1",s:"Liberado"},
+{c:"10005010",l:"L2610-11",q:800,e:"B-2-1",s:"Liberado"},
+{c:"10004500",l:"L2611-01",q:15000,e:"C-1-2",s:"Liberado"},
+{c:"10002345",l:"L2610-05",q:12000,e:"A-1-2",s:"Liberado"},
+{c:"10002354",l:"L2610-08",q:4000,e:"B-1-1",s:"Liberado"},
+{c:"10002360",l:"L2610-20",q:6000,e:"A-2-1",s:"Liberado"},
+{c:"10002377",l:"L2611-02",q:15000,e:"B-1-2",s:"Liberado"},
+{c:"10002410",l:"L2610-30",q:1800,e:"C-2-1",s:"Liberado"},
+{c:"10003121",l:"L2610-04",q:600,e:"A-3-1",s:"Liberado"},
+{c:"10004510",l:"L2610-41",q:9000,e:"C-3-1",s:"Liberado"},
+{c:"10005011",l:"L2610-14",q:500,e:"A-3-2",s:"Liberado"},
+{c:"10005030",l:"L2611-03",q:150,e:"B-3-1",s:"Liberado"},
+{c:"10006780",l:"L2610-12",q:3000,e:"D-1-1",s:"Liberado"},
+{c:"10006790",l:"L2610-16",q:3500,e:"D-2-2",s:"Liberado"},
+{c:"10006810",l:"L2610-33",q:4600,e:"D-1-2",s:"Liberado"},
+{c:"10008200",l:"L2611-09",q:3200,e:"D-2-1",s:"Liberado"},
+{c:"10008210",l:"L2611-10",q:4000,e:"E-1-2",s:"Liberado"},
+{c:"10009100",l:"L2610-50",q:700,e:"E-1-1",s:"Liberado"}];
+const st={lib:0,err:0,div:0,dup:0};
+const $=id=>document.getElementById(id);
+$("loc").innerHTML=LOCS.map(x=>`<option>${x}</option>`).join("");
+let pend=null;
+
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
+document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+["rec","est","for","dash","gs1","kan","trn","dia","cro","via"].forEach(t=>$(t).classList.toggle("hidden",t!==b.dataset.t));
+render();});
+
+function close(a){ // códigos parecidos: mesmo tamanho, até 2 dígitos diferentes
+return Object.keys(CAT).filter(k=>k.length===a.length&&[...k].filter((ch,i)=>ch!==a[i]).length<=2);}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+$("cod").addEventListener("input",()=>{
+const v=$("cod").value.replace(/\D/g,"");$("cod").value=v;
+const box=$("lookup");
+if(v.length<8){box.innerHTML="";return;}
+if(CAT[v]){box.innerHTML=`<div class="msg ok">Material encontrado: <b>${esc(CAT[v].d)}</b> (${CAT[v].u})</div>`;}
+else{const s=close(v);box.innerHTML=`<div class="msg er">Código inexistente no cadastro.${s.length?" Você quis dizer: "+s.map(k=>`<b>${k}</b> (${esc(CAT[k].d)})`).join(", ")+"?":""}</div>`;}
+});
+
+function msg(t,txt){return `<div class="msg ${t}">${txt}</div>`;}
+$("validar").onclick=()=>{
+const c=$("cod").value,l=$("lote").value.trim(),f=$("forn").value.trim();
+const qn=+$("qnf").value,qc=+$("qct").value,e=$("loc").value;
+let out="",bloq=false;pend=null;$("etqCard").classList.add("hidden");
+const falt=[];[['cod','Código SAP',c],['lote','Lote',l],['forn','Fornecedor',f],['qnf','Quantidade na NF',$("qnf").value],['qct','Quantidade contada',$("qct").value]].forEach(x=>{$(x[0]).classList.toggle('bad',!x[2]);if(!x[2])falt.push(x[1])});
+if(falt.length){out+=msg("er","Falta preencher: "+falt.join(", ")+" (campos em vermelho).");bloq=true;}
+else{
+if(!CAT[c]){out+=msg("er","Código inexistente: recebimento bloqueado antes de chegar ao SAP.");st.err++;ev('er','Código inexistente bloqueado: '+c);bloq=true;}
+else if(!$("conf").checked){out+=msg("wa","Confirme visualmente a descrição do material antes de continuar.");bloq=true;}
+if(CAT[c]&&estoque.some(x=>x.c===c&&x.l===l)){out+=msg("er","Duplicidade: este código com este lote já está registrado no estoque.");st.dup++;ev('er','Duplicidade bloqueada: '+c+' lote '+l);bloq=true;}
+if(estoque.some(x=>x.e===e)&&!bloq){out+=msg("wa",`O endereço ${e} já está ocupado por outro item. Escolha outro para manter a organização.`);bloq=true;}
+if(qn!==qc&&!bloq){out+=msg("wa",`Divergência: NF ${qn} x contado ${qc} (diferença de ${qc-qn}). Registrada para análise; a liberação segue com a quantidade contada.`);st.div++;ev('wa','Divergência na NF: '+qn+' x '+qc+' ('+c+')');}
+}
+if(!bloq){
+pend={c,l,f,q:qc,e,v:$("val").value,s:qn!==qc?"Divergente":"Liberado"};
+out+=msg("ok","Validação concluída. Etiqueta gerada.");
+const d=CAT[c];
+$("etq").innerHTML=`<b>${c}</b><br>${esc(d.d)}<br>Lote: ${esc(l)} | Qtd: ${qc} ${d.u}<br>Forn.: ${esc(f)}<br>Validade: ${pend.v?pend.v.split("-").reverse().join("/"):"n/a"}<br>Endereço: <b>${e}</b>`;
+$("qr").innerHTML="";
+try{new QRCode($("qr"),{text:`${c}|${l}|${qc}|${e}`,width:96,height:96});}catch(x){$("qr").textContent="QR";}
+$("etqCard").classList.remove("hidden");
+}
+$("msgs").innerHTML=out;render();};
+
+$("liberar").onclick=()=>{
+if(!pend)return;estoque.push(pend);st.lib++;pend.f=regSup(pend.f,pend.c);ev('ok','Liberado no estoque: '+pend.c+' lote '+pend.l+' ('+pend.f+')');pend=null;
+$("etqCard").classList.add("hidden");
+$("msgs").innerHTML=msg("ok","Material liberado e registrado no estoque (simulação do lançamento no SAP).");
+["cod","lote","forn","qnf","qct","val"].forEach(i=>$(i).value="");$("conf").checked=false;$("lookup").innerHTML="";render();};
+$("limpar").onclick=()=>{["cod","lote","forn","qnf","qct","val"].forEach(i=>$(i).value="");$("conf").checked=false;$("lookup").innerHTML="";$("msgs").innerHTML="";$("etqCard").classList.add("hidden");pend=null;};
+$("busca").oninput=render;
+
+function render(){
+const q=$("busca").value.toLowerCase();
+$("tb").innerHTML=estoque.filter(x=>(x.c+CAT[x.c].d+x.l).toLowerCase().includes(q)).map(x=>
+`<tr><td>${x.c}</td><td>${esc(CAT[x.c].d)}</td><td>${esc(x.f||SUPOF[x.c]||'—')}</td><td>${esc(x.l)}</td><td>${x.q} ${CAT[x.c].u}</td><td>${x.e}</td><td><span class="tag ${x.s==="Liberado"?"ok":"wa"}">${x.s}</span></td></tr>`).join("");
+$("k1").textContent=st.lib;$("k2").textContent=st.err;$("k3").textContent=st.div;$("k4").textContent=st.dup;}
+const LIM={'10002345':20000,'10002354':20000,'10003120':1000,'10003121':1000,'10004500':20000,'10005010':1000,'10005011':1000,'10006780':5000,'10002360':10000,'10002377':20000,'10002410':3000,'10003200':2000,'10004510':20000,'10005030':800,'10006790':5000,'10006810':4000,'10007100':1000,'10008200':5000,'10008210':5000,'10009100':1000};
+const AIN={'00':'SSCC','01':'GTIN','10':'Lote','17':'Validade (AAMMDD)','21':'Nº de série','30':'Quantidade','37':'Quantidade'};
+let P={};
+function dv(g){const d=g.split('').map(Number),c=d.pop();let s=0;d.reverse().forEach((x,i)=>s+=x*(i%2?1:3));return (10-s%10)%10===c}
+$('bipe').onclick=()=>{P={};const rows=[];$('gs1').value.replace(/\((\d{2,4})\)([^(]*)/g,(m,a,v)=>{v=v.trim();P[a]=v;let ex='';if(a==='01')ex=dv(v)?'<span class="tag ok">dígito verificador OK</span>':'<span class="tag er">GTIN inválido</span>';if(a==='17'&&v.length===6)ex='20'+v.slice(0,2)+'-'+v.slice(2,4)+'-'+v.slice(4);rows.push('<tr><td>('+a+')</td><td>'+(AIN[a]||'Outro')+'</td><td>'+esc(v)+'</td><td>'+ex+'</td></tr>');return m});
+$('gout').innerHTML=rows.length?'<div class="scroll" style="margin-top:12px"><table><thead><tr><th>IA</th><th>Campo</th><th>Valor</th><th>Verificação</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>':'<div class="msg er">Nenhum identificador encontrado.</div>';};
+$('envia').onclick=()=>{$('bipe').click();if(P['10'])$('lote').value=P['10'];const q=P['30']||P['37'];if(q)$('qct').value=q;if(P['17']&&P['17'].length===6)$('val').value='20'+P['17'].slice(0,2)+'-'+P['17'].slice(2,4)+'-'+P['17'].slice(4);document.querySelector('#nav button[data-t=rec]').click();};
+function renderK(){$('kb').innerHTML=Object.keys(CAT).map(c=>{const q=estoque.filter(x=>x.c===c).reduce((a,x)=>a+x.q,0),l=LIM[c],p=Math.round(q/l*100);const cl=q>l?'er':(q<=l*0.3?'wa':'');const tx=q>l?'Acima do limite':(q<=l*0.3?'Cartão voltou: repor':'OK');return '<div class="kc '+cl+'"><b>'+c+'</b><br>'+esc(CAT[c].d)+'<div class="bar"><i style="width:'+Math.min(p,100)+'%"></i></div>'+q+' / '+l+' '+CAT[c].u+' · '+tx+'<div class="row" style="margin-top:8px"><button class="btn sec" data-c="'+c+'">Registrar saída</button></div></div>'}).join('')}
+$('kb').onclick=e=>{const c=e.target.dataset.c;if(!c)return;$('sm').value=c;sinfo();$('sform').scrollIntoView({behavior:'smooth',block:'center'});$('sq').focus();};
+const brl=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
+function pbk(){const g=+$('gan').value,INV=91000,m=INV/g;$('gv').textContent=brl(g);
+$('pb').innerHTML=`<b>${m.toFixed(1).replace('.',',')} meses</b> para recuperar o investimento`+(m<=12?' (menos de 1 ano)':'');
+const N=Math.min(36,Math.max(12,Math.ceil(m)+3)),tot=g*N;
+$('pst').innerHTML=`<div><small>Investimento</small><b>${brl(INV)}</b></div><div><small>Payback</small><b>${m.toFixed(1).replace('.',',')} meses</b></div><div><small>Economia em ${N} meses</small><b>${brl(tot)}</b></div><div><small>Saldo líquido em ${N} meses</small><b style='color:var(${tot>=INV?'--ok':'--er'})'>${tot>=INV?'+':'−'}${brl(Math.abs(tot-INV))}</b></div>`;
+const W=640,H=320,L=62,R=16,T=24,B=44,pw=W-L-R,ph=H-T-B,mx=Math.max(INV,tot)*1.08;
+const steps=[5000,10000,20000,25000,50000,100000,200000,500000];const st=steps.find(x=>mx/x<=5)||500000,top=Math.ceil(mx/st)*st;
+const y=v=>T+ph-v/top*ph,sl=pw/N,xc=i=>L+(i-.5)*sl;
+let o=`<svg viewBox='0 0 ${W} ${H}' role='img' aria-label='Economia acumulada por mês comparada ao investimento'>`;
+for(let v=0;v<=top;v+=st){o+=`<line class='gl' x1='${L}' x2='${W-R}' y1='${y(v)}' y2='${y(v)}'/><text x='${L-8}' y='${y(v)+5}' text-anchor='end'>${v===0?'0':'R$ '+(v/1000)+' mil'}</text>`}
+const sk=N>24?3:N>12?2:1;
+for(let i=1;i<=N;i++){const a=g*i,pos=a>=INV;o+=`<rect class='b ${pos?'g':''}' data-i='${i}' x='${xc(i)-sl*.35}' y='${y(a)}' width='${sl*.7}' height='${T+ph-y(a)}' rx='2'><title>Mês ${i}: ${brl(a)}</title></rect>`;if(i%sk===0||i===1)o+=`<text x='${xc(i)}' y='${H-B+18}' text-anchor='middle'>${i}</text>`}
+o+=`<text x='${L+pw/2}' y='${H-6}' text-anchor='middle'>Meses após a implantação</text>`;
+o+=`<line class='iv' x1='${L}' x2='${W-R}' y1='${y(INV)}' y2='${y(INV)}'/><text class='it' x='${L+6}' y='${y(INV)-7}'>Investimento ${brl(INV)}</text>`;
+if(m<=N){const px=L+(m-.5)*sl,tx=Math.min(W-R-70,Math.max(L+70,px));o+=`<line class='pe' x1='${px}' x2='${px}' y1='${y(INV)}' y2='${T+ph}'/><circle cx='${px}' cy='${y(INV)}' r='6' fill='var(--ok)' stroke='var(--card)' stroke-width='2'/><text class='pt' x='${tx}' y='${T+ph-8}' text-anchor='middle'>Payback ≈ ${m.toFixed(1).replace('.',',')} meses</text>`}
+$('pch').innerHTML=o+'</svg>';$('pinfo').textContent='Toque ou passe o mouse em uma barra para ver o saldo daquele mês.';}
+function pin(e){const i=e.target.dataset&&e.target.dataset.i;if(!i)return;const a=+$('gan').value*i,INV=91000;$('pinfo').textContent=`Mês ${i}: economia acumulada de ${brl(a)}. `+(a>=INV?`Saldo positivo de ${brl(a-INV)}.`:`Ainda faltam ${brl(INV-a)} para pagar o investimento.`)}
+$('pch').addEventListener('mouseover',pin);$('pch').addEventListener('click',pin);
+$('gan').oninput=pbk;pbk();
+$('gm').innerHTML=Object.keys(CAT).map(c=>`<option value='${c}'>${c} · ${CAT[c].d}</option>`).join('');
+function gtin(c){const b='07891'+c;let s=0;b.split('').reverse().forEach((x,i)=>s+=x*(i%2?1:3));return b+((10-s%10)%10)}
+function bars(s){let x=0,h=7,o='';for(let i=0;i<s.length*3;i++){h=(h*31+s.charCodeAt(i%s.length)+i)%97;const w=1+h%3;if(i%2===0)o+=`<rect x='${x}' y='0' width='${w}' height='40'/>`;x+=w}return `<svg viewBox='0 0 ${x} 40' preserveAspectRatio='none' style='width:100%;height:46px;margin-top:6px'><g fill='#000'>${o}</g></svg>`}
+$('gera').onclick=()=>{const c=$('gm').value,l=$('gl').value.trim(),q=+$('gq').value,v=$('gv').value;if(!l||!q){$('gl2').innerHTML=`<div class='msg er'>Informe lote e quantidade.</div>`;return}const vv=v?v.slice(2,4)+v.slice(5,7)+v.slice(8,10):'';const code='(01)'+gtin(c)+'(10)'+l+(vv?'(17)'+vv:'')+'(30)'+q;$('gs1').value=code;$('gl2').innerHTML=`<div class='label' style='display:block;margin-top:12px'><b>${esc(CAT[c].d)}</b><br><span class='t'>Lote ${esc(l)} · Qtd ${q} ${CAT[c].u}${v?' · Val. '+v.split('-').reverse().join('/'):''}</span>${bars(code)}<div class='tech'>${esc(code)}</div></div><p class='hint'>Barras ilustrativas. Na prática, a etiqueta é impressa em GS1-128 real.</p>`;$('bipe').disabled=false;$('envia').disabled=true;$('gout').innerHTML='';};
+$('gs1').oninput=()=>{$('bipe').disabled=!$('gs1').value;$('envia').disabled=true;};
+$('bipe').onclick=()=>{P={};$('gs1').value.replace(/\((\d{2,4})\)([^(]*)/g,(m,a,v)=>{P[a]=v.trim();return m});
+if(!P['01']){$('gout').innerHTML=`<div class='msg er'>Nenhum código para ler. Gere a etiqueta no passo 1.</div>`;return}
+const g=P['01'],ok=g.length===14&&dv(g),c=g.slice(5,13),known=!!CAT[c];const p=P['17']||'';const val=p.length===6?`${p.slice(4,6)}/${p.slice(2,4)}/20${p.slice(0,2)}`:'—';
+let st=ok&&known?`<div class='msg ok'>Leitura correta: GTIN válido e material reconhecido. Dados prontos para o SAP.</div>`:ok?`<div class='msg wa'>GTIN válido, mas o material não está no cadastro.</div>`:`<div class='msg er'>GTIN inválido: provável erro de digitação ou etiqueta danificada. Não prosseguir.</div>`;
+$('gout').innerHTML=`<div class='rd'><div><small>Material</small><b>${known?esc(CAT[c].d):'Não reconhecido'}</b></div><div><small>Código SAP</small><b>${known?c:'—'}</b></div><div><small>Lote</small><b>${esc(P['10']||'—')}</b></div><div><small>Quantidade</small><b>${esc(P['30']||P['37']||'—')}</b></div><div><small>Validade</small><b>${val}</b></div></div>`+st;
+$('envia').disabled=!(ok&&known);};
+$('envia').onclick=()=>{const g=P['01']||'',c=g.slice(5,13);$('cod').value=c;$('cod').dispatchEvent(new Event('input'));if(P['10'])$('lote').value=P['10'];const q=P['30']||P['37'];if(q)$('qct').value=q;const p=P['17']||'';if(p.length===6)$('val').value='20'+p.slice(0,2)+'-'+p.slice(2,4)+'-'+p.slice(4);$('conf').checked=false;pend=null;$('etqCard').classList.add('hidden');
+const livre=[...$('loc').options].map(o=>o.value).find(v=>!estoque.some(x=>x.e===v));if(livre)$('loc').value=livre;
+document.querySelector('#nav button[data-t=rec]').click();
+document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
+$('msgs').innerHTML=msg('ok','Dados da etiqueta importados: código SAP, lote, quantidade e validade. Falta informar o fornecedor e a quantidade da NF, e marcar a confirmação da descrição.');
+$('forn').focus();};
+const TR=[
+{n:'Leitura GS1-128',who:'Operadores do recebimento',h:3,learn:['Ler os identificadores: (01) GTIN, (10) lote, (17) validade, (30) quantidade','Usar o leitor e conferir a etiqueta','O que fazer quando o GTIN é inválido'],go:'gm',b:'Praticar a leitura (aba GS1-128)'},
+{n:'Lançamento no SAP (MIGO)',who:'Conferentes e TI',h:4,learn:['Receber o material com os campos preenchidos pela leitura','Parar de digitar lote e código à mão','Corrigir um lançamento errado'],tab:'rec',b:'Praticar na aba Recebimento'},
+{n:'Conferência da NF e divergências',who:'Conferentes',h:3,learn:['Comparar a quantidade da NF com a contada','Registrar e comunicar divergências','Identificar código trocado, parecido ou duplicado'],tab:'rec',b:'Praticar os cenários de erro'},
+{n:'Kanban no almoxarifado',who:'Almoxarifes e produção',h:4,learn:['Cartões, cores e limite físico por código','Ponto de reposição: quando o cartão volta','Evitar superlotação e troca de itens'],go:'kb',b:'Praticar no quadro (aba Kanban)'},
+{n:'Endereçamento e organização física',who:'Almoxarifes',h:2,learn:['Padrão rua-prateleira-nível','Guardar cada item no endereço certo','Sinalização visual das prateleiras'],tab:'rec',b:'Praticar o campo de endereço'},
+{n:'Etiqueta ilegível ou ausente',who:'Recebimento',h:2,learn:['Quando gerar uma nova etiqueta na doca','Como cobrar o padrão GS1 dos fornecedores'],go:'gm',b:'Praticar a geração (aba GS1-128)'},
+{n:'Gestão e indicadores',who:'Líderes e supervisores',h:2,learn:['Ler os indicadores de erros e acuracidade','Conduzir a campanha Zero Erro'],tab:'dash',b:'Ver a aba Indicadores'}];
+let tsel=0;const tck=TR.map(()=>true);
+function renderT(){
+$('tchips').innerHTML=TR.map((t,i)=>`<button class='tc ${i===tsel?'on':''}' data-i='${i}'>T${i+1} · ${t.n}</button>`).join('');
+const t=TR[tsel];
+$('tpanel').innerHTML=`<h4>T${tsel+1}. ${t.n}</h4><div class='tmeta'><span class='tag ok'>${t.who}</span><span class='tag wa'>${t.h} h</span></div><ul class='l'>${t.learn.map(x=>`<li>${x}</li>`).join('')}</ul><div class='row'><button class='btn sec' id='tgo'>${t.b}</button></div>`;
+$('tgo').onclick=()=>{if(t.tab){document.querySelector(`#nav button[data-t=${t.tab}]`).click()}else{document.querySelector('#nav button[data-t='+(t.go==='kb'?'kan':'gs1')+']').click();$(t.go).scrollIntoView({behavior:'smooth',block:'center'})}};
+$('tsel').innerHTML=TR.map((x,i)=>`<label><input type='checkbox' data-k='${i}' ${tck[i]?'checked':''}> T${i+1} · ${x.n} (${x.h} h)</label>`).join('');
+const h=TR.reduce((a,x,i)=>a+(tck[i]?x.h:0),0);
+$('tsum').textContent=`${h} h de formação · R$ ${(h*450).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;}
+$('tchips').onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){tsel=+i;renderT()}};
+$('tsel').onchange=e=>{const k=e.target.dataset.k;if(k!==undefined){tck[+k]=e.target.checked;renderT()}};
+renderT();
+$('echips').onclick=e=>{const k=e.target.dataset.e;if(!k)return;document.querySelectorAll('#echips .tc').forEach(b=>b.classList.toggle('on',b.dataset.e===k));['e1','e2','e3'].forEach(x=>$(x).classList.toggle('hidden',x!==k))};
+function ec(){const a=+$('ta').value,n=+$('tn').value,q=+$('tq').value;$('tres').textContent=a>0&&$('tn').value!==''&&q>0?(a>n?`Economia de ${Math.round((a-n)*q/60)} min por dia (${Math.round((a-n)/a*100)}% menos tempo por recebimento).`:'O novo processo não foi mais rápido neste teste. Revise as medições.'):'Informe os três valores para ver o ganho.'}
+['ta','tn','tq'].forEach(i=>$(i).oninput=ec);
+const TZ=[['1º turno',100],['2º turno',97],['3º turno',100]];
+$('zrows').innerHTML=TZ.map((t,i)=>`<div style='margin:12px 0'><label>${t[0]}: <b id='zv${i}'></b> <span id='zb${i}'></span></label><input type='range' min='90' max='100' value='${t[1]}' data-z='${i}'></div>`).join('');
+function zu(i,v){$('zv'+i).textContent=v+'%';$('zb'+i).innerHTML=v===100?`<span class='tag ok'>Reconhecido: Zero Erro</span>`:`<span class='tag wa'>Faltam ${100-v} p.p.</span>`}
+TZ.forEach((t,i)=>zu(i,t[1]));
+$('zrows').oninput=e=>{const i=e.target.dataset.z;if(i!==undefined)zu(i,+e.target.value)};
+const KP={};function kp(){['k1','k2','k3','k4','k5','k6','k7','k8'].forEach(i=>{const e=$(i),v=e.textContent;if(KP[i]!==undefined&&KP[i]!==v){e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}KP[i]=v})}
+function beep(){try{const A=new (window.AudioContext||window.webkitAudioContext)(),o=A.createOscillator(),g=A.createGain();o.frequency.value=1200;g.gain.value=.06;o.connect(g);g.connect(A.destination);o.start();o.stop(A.currentTime+.09)}catch(x){}}
+$('bipe').addEventListener('click',()=>{const l=document.querySelector('#gl2 .label');if(l){l.classList.remove('scan');void l.offsetWidth;l.classList.add('scan')}beep()});
+['cod','lote','forn','qnf','qct'].forEach(i=>$(i).addEventListener('input',e=>e.target.classList.remove('bad')));
+$('limpar').addEventListener('click',()=>document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad')));
+const SLOG=[];
+$('sm').innerHTML=Object.keys(CAT).map(c=>`<option value='${c}'>${c} · ${CAT[c].d}</option>`).join('');
+function disp(c){return estoque.filter(x=>x.c===c).reduce((a,x)=>a+x.q,0)}
+function sinfo(){const c=$('sm').value;$('sinfo').textContent=`Disponível: ${disp(c)} ${CAT[c].u} · limite do Kanban: ${LIM[c]} ${CAT[c].u}`}
+function renderS(){$('slog').innerHTML=SLOG.length?SLOG.slice(0,8).map(x=>`<tr><td>${x.h}</td><td>${x.c} · ${esc(CAT[x.c].d)}</td><td>${x.q} ${CAT[x.c].u}</td><td>${x.m}</td><td>${esc(x.r)}</td></tr>`).join(''):`<tr><td colspan='5'>Nenhuma saída registrada ainda.</td></tr>`}
+$('sm').onchange=sinfo;
+$('sreg').onclick=()=>{const c=$('sm').value,q=+$('sq').value,r=$('sr').value.trim(),d=disp(c),u=CAT[c].u;
+if(!(q>0)){$('smsg').innerHTML=msg('er','Informe a quantidade retirada.');return}
+if(!r){$('smsg').innerHTML=msg('er','Informe o responsável pela retirada.');return}
+if(q>d){$('smsg').innerHTML=msg('er',`Saldo insuficiente: disponível ${d} ${u}.`);return}
+let rest=q;estoque.filter(x=>x.c===c).forEach(x=>{const t=Math.min(x.q,rest);x.q-=t;rest-=t});
+estoque=estoque.filter(x=>x.q>0);ev('wa','Saída de '+q+' '+u+' ('+c+'): '+$('sd').value);
+SLOG.unshift({h:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),c,q,m:$('sd').value,r});
+const sal=d-q,rep=sal<=LIM[c]*0.3;
+$('smsg').innerHTML=msg(rep?'wa':'ok',`Saída registrada: ${q} ${u}. Saldo atual: ${sal} ${u}.`+(rep?' O cartão Kanban voltou: repor este material.':''));
+$('sq').value='';render();};
+const EV=[];
+function ev(t,x){EV.unshift({h:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),t,x});if(EV.length>20)EV.pop()}
+function renderD(){
+const tot=st.lib+st.err+st.dup,p=tot?st.lib/tot:0,C=2*Math.PI*52;
+$('k5').textContent=SLOG.length;
+const oc=new Set(estoque.map(x=>x.e));$('k7').textContent=oc.size+'/'+LOCS.length;
+$('k8').textContent=tot?Math.round(p*100)+'%':'—';
+$('dn').innerHTML=`<svg viewBox='0 0 140 140' width='130' height='130' role='img' aria-label='Taxa de acerto'><circle cx='70' cy='70' r='52' fill='none' stroke='var(--bd)' stroke-width='14'/><circle cx='70' cy='70' r='52' fill='none' stroke='var(--ok)' stroke-width='14' stroke-dasharray='${p*C} ${C}' transform='rotate(-90 70 70)'/><text x='70' y='77' text-anchor='middle' font-size='26' font-weight='700' fill='var(--tx)'>${tot?Math.round(p*100)+'%':'—'}</text></svg>`;
+const it=[['Código inexistente',st.err,'var(--er)'],['Duplicidade',st.dup,'var(--er)'],['Divergência de quantidade',st.div,'var(--wa)']],mx=Math.max(1,...it.map(x=>x[1]));
+$('oc').innerHTML=it.map(x=>`<div class='ob'><div><span>${x[0]}</span><b>${x[1]}</b></div><i style='width:${Math.max(x[1]?4:0,x[1]/mx*100)}%;background:${x[2]}'></i></div>`).join('');
+let ok=0,wa=0,er=0,rp=[];Object.keys(CAT).forEach(c=>{const q=disp(c),l=LIM[c];if(q>l)er++;else if(q<=l*.3){wa++;rp.push(`<span class='tag wa'>${esc(CAT[c].d)}: ${q}/${l}</span>`)}else ok++});
+$('k6').textContent=wa+er;const n=ok+wa+er;
+$('ks').innerHTML=`<div class='sk'><span style='width:${ok/n*100}%;background:var(--ok)'></span><span style='width:${wa/n*100}%;background:#e0a100'></span><span style='width:${er/n*100}%;background:var(--er)'></span></div><div class='lg'><span><i style='background:var(--ok)'></i>OK (${ok})</span><span><i style='background:#e0a100'></i>Repor (${wa})</span><span><i style='background:var(--er)'></i>Acima do limite (${er})</span></div>`;
+$('kl').innerHTML=rp.length?'<div class="hint" style="margin:0 0 6px">Para repor agora:</div>'+rp.join(' '):'<div class="msg ok">Nenhum material precisa de reposição.</div>';
+const map={};estoque.forEach(x=>map[x.e]=x);let h='';['A','B','C','D','E'].forEach(r=>{h+=`<div class='mrow'><b>Rua ${r}</b><div class='mc2'>`;[1,2,3].forEach(pr=>[1,2].forEach(nv=>{const k=`${r}-${pr}-${nv}`,x=map[k];h+=`<div class='${x?'o':''}' title='${k}${x?': '+CAT[x.c].d:': livre'}'>${k}</div>`}));h+='</div></div>'});
+$('mp').innerHTML=h;$('mpt').textContent=`${oc.size} de ${LOCS.length} endereços ocupados. Passe o mouse para ver o item.`;
+$('fd').innerHTML=EV.length?EV.slice(0,6).map(e=>`<div class='fe'><i style='background:${e.t==='ok'?'var(--ok)':e.t==='wa'?'#e0a100':'var(--er)'}'></i><span>${esc(e.x)}</span><small>${e.h}</small></div>`).join(''):'<p class="hint">Nenhuma atividade ainda. Faça um recebimento ou uma saída.</p>'}
+const SUP=[{n:'Metalúrgica Alfa',c:'Betim · MG',g:'Sim',m:['10003120','10003121','10009100']},{n:'Eletrônica Beta',c:'Extrema · MG',g:'Sim',m:['10002345','10002354','10002360','10002377']},{n:'Plásticos Gama',c:'Pouso Alegre · MG',g:'Parcial',m:['10005010','10005011','10005030']},{n:'Fixadores Delta',c:'Campinas · SP',g:'Não',m:['10004500','10004510']},{n:'Cabos Ômega',c:'Contagem · MG',g:'Parcial',m:['10006780','10006790','10006810']},{n:'Placas Zeta',c:'São José dos Campos · SP',g:'Parcial',m:['10002410']},{n:'Motores Sigma',c:'Joinville · SC',g:'Não',m:['10003200']},{n:'Displays Kappa',c:'Manaus · AM',g:'Sim',m:['10007100']},{n:'Embalagens Lambda',c:'Poços de Caldas · MG',g:'Parcial',m:['10008200','10008210']}];
+const SUPOF={};SUP.forEach(x=>x.m.forEach(c=>SUPOF[c]=x.n));
+const GADV={'Sim':'Etiqueta já chega no padrão: bipe direto no recebimento.','Parcial':'Parte dos lotes chega fora do padrão: se faltar, gerar etiqueta na doca.','Não':'Gerar a etiqueta GS1-128 na doca e cobrar a adequação do fornecedor.','Não avaliado':'Fornecedor novo: verifique se a etiqueta dele chega no padrão GS1-128.'};
+const gcl=g=>g==='Sim'?'ok':g==='Não'?'er':'wa';
+function sq(n,c){return estoque.filter(e=>e.c===c&&(e.f||SUPOF[e.c])===n).reduce((a,e)=>a+e.q,0)}
+function regSup(n,c){n=(n||'').trim();if(!n)return '';let x=SUP.find(y=>y.n.toLowerCase()===n.toLowerCase());if(!x){x={n,c:'Cadastrado no recebimento',g:'Não avaliado',m:[]};SUP.push(x);$('dsup').innerHTML=SUP.map(y=>`<option value='${y.n}'>`).join('')}if(!x.m.includes(c))x.m.push(c);return x.n}
+let fv='f';
+$('dsup').innerHTML=SUP.map(x=>`<option value='${x.n}'>`).join('');
+$('cod').addEventListener('input',()=>{const v=$('cod').value;if(CAT[v]&&!$('forn').value){$('forn').value=SUPOF[v];$('forn').classList.remove('bad')}});
+function renderF(){
+const q=$('fq').value.toLowerCase();
+const cnt=g=>SUP.filter(x=>x.g===g).length;
+$('fsum').innerHTML=`<div><small>Fornecedores</small><b>${SUP.length}</b></div><div><small>Etiqueta no padrão</small><b style='color:var(--ok)'>${cnt('Sim')}</b></div><div><small>Parcialmente</small><b style='color:var(--wa)'>${cnt('Parcial')}</b></div><div><small>Fora do padrão</small><b style='color:var(--er)'>${cnt('Não')}</b></div><div><small>Não avaliados</small><b>${cnt('Não avaliado')}</b></div>`;
+const match=x=>(x.n+' '+x.c+' '+x.m.map(c=>c+' '+CAT[c].d).join(' ')).toLowerCase().includes(q);
+if(fv==='f'){
+$('fl').innerHTML='<div class="sg">'+SUP.filter(match).map(x=>{const lotes=estoque.filter(e=>(e.f||SUPOF[e.c])===x.n).length;return `<div class='fc'><div class='fh'><b>${x.n}</b><span class='tag ${gcl(x.g)}'>GS1: ${x.g}</span></div><small>${x.c}</small><ul>${x.m.map(c=>`<li><span>${c} · ${esc(CAT[c].d)}</span><b>${sq(x.n,c)} ${CAT[c].u}</b></li>`).join('')}</ul><div class='adv'>${lotes} lote(s) em estoque. ${GADV[x.g]}</div>${x.g==='Não avaliado'?`<label style='margin-top:8px'>Etiqueta GS1-128 deste fornecedor</label><select data-s='${SUP.indexOf(x)}'><option>Não avaliado</option><option>Sim</option><option>Parcial</option><option>Não</option></select>`:''}</div>`}).join('')+'</div>';
+}else{
+const rows=[];SUP.filter(match).forEach(x=>x.m.forEach(c=>rows.push(`<tr><td>${c}</td><td>${esc(CAT[c].d)}</td><td>${x.n}</td><td><span class='tag ${gcl(x.g)}'>${x.g}</span></td><td>${sq(x.n,c)} ${CAT[c].u}</td></tr>`)));
+$('fl').innerHTML=`<div class='scroll'><table><thead><tr><th>Código</th><th>Peça</th><th>Fornecedor</th><th>GS1-128</th><th>Saldo</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
+if(!SUP.some(match))$('fl').innerHTML='<p class="hint">Nada encontrado.</p>'}
+document.querySelector('#for .chips').onclick=e=>{const v=e.target.dataset.v;if(!v)return;fv=v;document.querySelectorAll('#for .chips .tc').forEach(b=>b.classList.toggle('on',b.dataset.v===v));renderF()};
+$('fq').oninput=renderF;
+$('fl').onchange=e=>{const i=e.target.dataset.s;if(i===undefined)return;SUP[+i].g=e.target.value;renderF()};
+function renderFC(){const v=$('cod').value,cur=$('forn').value.trim().toLowerCase();const l=[...SUP].sort((a,b)=>(b.m.includes(v)?1:0)-(a.m.includes(v)?1:0));$('fchips').innerHTML=l.map(x=>`<button type='button' class='sc ${x.n.toLowerCase()===cur?'on':''}' data-n='${SUP.indexOf(x)}'><b>${x.n}</b><small>${x.c}</small><span class='tag ${gcl(x.g)}'>GS1: ${x.g}</span>${x.m.includes(v)?`<div class='rc'>★ fornece esta peça</div>`:''}</button>`).join('')}
+$('fchips').onclick=e=>{const b=e.target.closest('[data-n]');if(!b)return;$('forn').value=SUP[+b.dataset.n].n;$('forn').classList.remove('bad');renderFC()};
+$('forn').addEventListener('input',renderFC);
+$('cod').addEventListener('input',renderFC);
+function goTab(t){document.querySelector(`#nav button[data-t=${t}]`).click()}
+const DG=[{n:'Recebimento',p:'Etiquetas incompletas ou ilegíveis; conferência feita manualmente.',c:'Gargalos no tempo de operação e exposição a erros humanos.',s:'Etiqueta GS1-128 padronizada e conferência guiada.',tab:'gs1',b:'Ver a etiquetagem GS1-128'},
+{n:'Registro no SAP',p:'Lançamentos manuais, com códigos trocados ou inexistentes.',c:'Erros e divergências nos registros; perda de confiabilidade das informações.',s:'A leitura preenche os campos e o código é validado no cadastro.',tab:'rec',b:'Ver o Recebimento'},
+{n:'Armazenagem',p:'Falta de padronização na identificação das matérias-primas.',c:'Duplicidade de estoque e troca de itens de códigos diferentes.',s:'Kanban com limite físico e endereço obrigatório por item.',tab:'kan',b:'Ver o Kanban'},
+{n:'Liberação para a produção',p:'Informações pouco confiáveis e conferência lenta.',c:'Perda de agilidade nos processos internos.',s:'Dados confiáveis e indicadores para acompanhar a liberação.',tab:'dash',b:'Ver os Indicadores'}];
+let dsel=0;
+function renderDG(){$('dchips').innerHTML=DG.map((x,i)=>`<button class='tc ${i===dsel?'on':''}' data-i='${i}'>${i+1} · ${x.n}</button>`).join('');const x=DG[dsel];
+$('dpanel').innerHTML=`<h4>${x.n}</h4><div class='msg er'><b>Problema:</b> ${x.p}</div><div class='msg wa'><b>Consequência:</b> ${x.c}</div><div class='msg ok'><b>Como a solução responde:</b> ${x.s}</div><div class='row'><button class='btn sec' id='dgo'>${x.b}</button></div>`;
+$('dgo').onclick=()=>goTab(x.tab)}
+$('dchips').onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){dsel=+i;renderDG()}};
+renderDG();
+const ET=[{n:'1. Diagnóstico',a:1,b:2,t:'Levantamento do processo atual e dos dados de erros.'},{n:'2. Configuração',a:3,b:4,t:'Habilitar a leitura dos IAs no SAP, definir o layout das etiquetas GS1-128 e contratar a licença GS1.'},{n:'3. Organização do estoque',a:4,b:6,t:'Implantar caixas, cartões e sinalização Kanban.'},{n:'4. Treinamento',a:5,b:7,t:'Capacitação da equipe no leitor e no Kanban; workshops.'},{n:'5. Piloto e acompanhamento',a:8,b:12,t:'Operação assistida e medição dos indicadores.'}];
+function renderG(){const w=+$('sem').value;$('semv').textContent=w;let h='<div></div>';for(let i=1;i<=12;i++)h+=`<div class='wk ${i===w?'cur':''}'>${i}</div>`;
+ET.forEach(e=>{h+=`<div class='lb'>${e.n}</div>`;for(let i=1;i<=12;i++)h+=`<div class='cell ${i>=e.a&&i<=e.b?'on':''} ${i===w?'cur':''}'></div>`});
+$('gantt').innerHTML=h;const at=ET.filter(e=>w>=e.a&&w<=e.b);
+$('semt').innerHTML=`<b>Semana ${w}:</b> `+at.map(e=>`${e.n} (${e.t})`).join(' ')}
+$('sem').oninput=renderG;renderG();
+const _r=render;render=function(){_r();renderK();sinfo();renderS();renderD();renderF();renderFC();kp();};
+render();
+</script>
+</body>
+</html>
